@@ -1,1 +1,32 @@
+--Exploring liquor sales data from in BigQuery
 
+-- Find total sales by store between January 2020 and December 2021
+  SELECT round(sum(sale_dollars),2) AS total_sales, store_name
+  FROM bigquery-public-data.iowa_liquor_sales.sales
+  WHERE date between '2020-01-01' AND '2021-12-31'
+  GROUP BY store_name
+  ORDER BY total_sales DESC
+
+--Find the most popular liquor sold by store between January 2020 and December 2021 where the total bottles sold is >5000
+  SELECT store_name,item_description, sum(bottles_sold) AS bottles_sold
+  FROM `bigquery-public-data.iowa_liquor_sales.sales` 
+  WHERE date between '2020-01-01' AND '2021-12-31'
+  GROUP BY store_name, item_description
+  HAVING bottles_sold >5000
+  Order by store_name, bottles_sold
+
+--Find total bottles sold by month in 2019, 2020, and 2021
+  SELECT sum(bottles_sold) AS total_sold, extract(month from date) as Month, extract(year from date) AS Year
+  FROM bigquery-public-data.iowa_liquor_sales.sales
+  WHERE date between '2020-01-01' and '2020-12-31' or date between '2021-01-01' and '2021-12-31' or date between '2019-01-01' and '2019-12-31'
+  GROUP BY Year, Month
+  ORDER BY Year, Month ASC
+  
+  --Find total bottles sold by category name and the total sales
+  SELECT sum(bottles_sold) as total_sold, cagtegory_name2, ROUND(sum(sale_dollars), 2) AS total_sales
+  FROM (
+    SELECT LOWER (category_name) as cagtegory_name2, bottles_sold, item_description, sale_dollars -- changed category names to all lower case for accurate counting as some were in all upper case or mixed case 
+    FROM bigquery-public-data.iowa_liquor_sales.sales
+  ) AS table2
+  GROUP BY cagtegory_name2
+  ORDER BY total_sold DESC
